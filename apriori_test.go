@@ -46,3 +46,27 @@ func TestWrongTransaction(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func (t Transaction) equal(other Transaction) bool {
+	if len(t) != len(other) {
+		return false
+	}
+	for i, v := range t {
+		if v != other[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (t Transaction) notEqual(other Transaction) bool {
+	return !t.equal(other)
+}
+
+func TestReadTransaction(t *testing.T) {
+	tran := readTransaction("0100110")
+
+	if tran.notEqual(Transaction{false, true, false, false, true, true, false}) {
+		t.Error(tran)
+	}
+}
