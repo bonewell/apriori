@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"flag"
+	"fmt"
+	"os"
+)
 
 type Transaction []bool
 type WrongTransaction string
@@ -23,5 +27,14 @@ func (f Frequencies) update(t Transaction) error {
 }
 
 func main() {
-	fmt.Printf("Apriori goes!")
+	threshold := flag.Float64("t", 50.0, "threshold to get products")
+	flag.Parse()
+	inputFile := flag.Arg(0)
+	if inputFile == "" {
+		fmt.Println("File with transactions should be provided")
+		os.Exit(1)
+	}
+
+	fmt.Println("threashold=", *threshold)
+	fmt.Println("file=", inputFile)
 }
