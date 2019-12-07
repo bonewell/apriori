@@ -2,16 +2,24 @@ package main
 
 import "fmt"
 
-func CalculateFrequency(transactions [][]int) []int {
-	frequency := make([]int, len(transactions[0]))
-	for _, t := range transactions {
-		for i, f := range t {
-			if f == 1 {
-				frequency[i] += 1
-			}
+type Transaction []bool
+type WrongTransaction string
+type Frequencies []int
+
+func (t WrongTransaction) Error() string {
+	return string(t)
+}
+
+func (f Frequencies) update(t Transaction) error {
+	if len(f) != len(t) {
+		return WrongTransaction("Count of products in transaction is not correct")
+	}
+	for i, presented := range t {
+		if presented {
+			f[i] += 1
 		}
 	}
-	return frequency
+	return nil
 }
 
 func main() {
