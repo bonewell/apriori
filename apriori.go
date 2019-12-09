@@ -8,8 +8,7 @@ import (
 )
 
 type Transaction []bool  // ordered by index of the product
-type index int
-type Goods []index
+type Goods []int
 type GoodsSet []Goods
 type frequencies []int
 
@@ -24,7 +23,7 @@ func Parse(line string) Transaction {
 func load(filename string) []Transaction {
 	f, err := os.OpenFile(filename, os.O_RDONLY, os.ModePerm)
 	if err == nil {
-		transactions := make([]Transaction, 1)
+		transactions := make([]Transaction, 0)
 		sc := bufio.NewScanner(f)
 		for sc.Scan() {
 			transactions = append(transactions, Parse(sc.Text()))
@@ -61,7 +60,27 @@ func (gs GoodsSet) count(ts []Transaction) frequencies {
 	return fs
 }
 
+func (f frequencies) filter(gs GoodsSet, threshold int) GoodsSet {
+	if len(f) != len(gs) { panic("Wrong length of data") }
+	filtered := make(GoodsSet, 0)
+	for i, v := range f {
+		if v >= threshold {
+			filtered = append(filtered, gs[i])
+		}
+	}
+	return filtered
+}
+
 func Apriori(transactions []Transaction, threshold int) GoodsSet {
+	if len(transactions) > 0 {
+		fmt.Println(len(transactions[0]))
+		gs := make(GoodsSet, len(transactions[0]))
+		for i := range transactions[0] {
+			gs[i] = Goods{i}
+		}
+		fs := gs.count(transactions)
+		return fs.filter(gs, threshold)
+	}
 	return GoodsSet{}
 }
 
