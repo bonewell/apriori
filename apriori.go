@@ -7,27 +7,13 @@ import (
 	"os"
 )
 
-type Transaction []bool
-type WrongTransaction string
-type Frequencies []int
+type Transaction []bool  // ordered by index of the product
+type index int
+type Goods []index
+type GoodsSet []Goods
+type frequencies []int
 
-func (t WrongTransaction) Error() string {
-	return string(t)
-}
-
-func (f Frequencies) update(t Transaction) error {
-	if len(f) != len(t) {
-		return WrongTransaction("Count of products in transaction is not correct")
-	}
-	for i, presented := range t {
-		if presented {
-			f[i] += 1
-		}
-	}
-	return nil
-}
-
-func readTransaction(line string) Transaction {
+func Parse(line string) Transaction {
 	t := make(Transaction, len(line))
 	for i, c := range line {
 		t[i] = c != '0'
@@ -35,24 +21,52 @@ func readTransaction(line string) Transaction {
 	return t
 }
 
-func readFile(filename string) {
+func load(filename string) []Transaction {
 	f, err := os.OpenFile(filename, os.O_RDONLY, os.ModePerm)
 	if err == nil {
+		transactions := make([]Transaction, 1)
 		sc := bufio.NewScanner(f)
 		for sc.Scan() {
-			fmt.Println(readTransaction(sc.Text()))
+			transactions = append(transactions, Parse(sc.Text()))
 		}
 		if err := sc.Err(); err != nil {
 			fmt.Println("scan file error:", err)
 		}
 		f.Close()
+		return transactions
 	} else {
 		fmt.Println("open file error:", err)
+		return []Transaction{}
 	}
 }
 
+func (t Transaction) contains(goods Goods) bool {
+	for _, index := range goods {
+		if len(t) <= int(index) || !t[index] {
+			return false
+		}
+	}
+	return true
+}
+
+func (gs GoodsSet) count(ts []Transaction) frequencies {
+	fs := make(frequencies, len(gs))
+	for i, goods := range gs {
+		for _, t := range ts {
+			if t.contains(goods) {
+				fs[i] += 1
+			}
+		}
+	}
+	return fs
+}
+
+func Apriori(transactions []Transaction, threshold int) GoodsSet {
+	return GoodsSet{}
+}
+
 func main() {
-	threshold := flag.Float64("t", 50.0, "threshold to get products")
+	threshold := flag.Int("t", 20, "threshold to get products")
 	flag.Parse()
 	filename := flag.Arg(0)
 	if filename == "" {
@@ -63,5 +77,7 @@ func main() {
 	fmt.Println("threashold=", *threshold)
 	fmt.Println("file=", filename)
 
-	readFile(filename)
+	goods := Apriori(load(filename), *threshold)
+
+	fmt.Println(goods)
 }

@@ -5,13 +5,15 @@ The project is implementation of Apriori algorithm
 ```Shell
 $ go get github.com/bonewell/apriori
 ```
+
 ## Install
 ```Shell
 $ go install github.com/bonewell/apriori
 ```
+
 ## Run
 ```Shell
-$ $GOPATH/bin/apriori
+$ $GOPATH/bin/apriori github.com/bonewell/apriori/transactions
 ```
 
 ## Run test
