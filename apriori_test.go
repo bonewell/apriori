@@ -34,18 +34,6 @@ func (t Transaction) notEqual(other Transaction) bool {
 	return !t.equal(other)
 }
 
-func (g Goods) equal(other Goods) bool {
-	if len(g) != len(other) {
-		return false
-	}
-	for i, v := range g {
-		if v != other[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func (g Goods) notEqual(other Goods) bool {
 	return !g.equal(other)
 }
@@ -227,4 +215,121 @@ func BenchmarkFilter(b *testing.B) {
 	}
 
 	var _ = fs.filter(goods, 4)
+}
+
+func TestUnion(t *testing.T) {
+	goods := Goods{0}.union(Goods{1})
+
+	if goods.notEqual(Goods{0, 1}) {
+		t.Error(goods)
+	}
+}
+
+func TestUnionSimilar(t *testing.T) {
+	goods := Goods{0, 1, 2}.union(Goods{1, 2, 4})
+
+	if goods.notEqual(Goods{0, 1, 2, 4}) {
+		t.Error(goods)
+	}
+}
+
+func TestUnionTail(t *testing.T) {
+	goods := Goods{0, 1, 2}.union(Goods{0, 1, 2, 3, 4, 5})
+
+	if goods.notEqual(Goods{0, 1, 2, 3, 4, 5}) {
+		t.Error(goods)
+	}
+}
+
+func TestUnionEmpty(t *testing.T) {
+	goods := Goods{}.union(Goods{})
+
+	if len(goods) != 0 {
+		t.Error(goods)
+	}
+}
+
+func BenchmarkGoodsUnion(b *testing.B) {
+	goods := Goods{
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+		10, 12, 13, 14, 17, 18, 19,
+		20, 22, 23, 24, 27, 28, 29,
+		30, 32, 33, 34, 37, 38, 39,
+		40, 42, 43, 44, 47, 48, 49,
+		50, 52, 53, 54, 57, 58, 59,
+		60, 62, 63, 64, 67, 68, 69,
+		70, 72, 73, 74, 77, 78, 79,
+		80, 82, 83, 84, 87, 88, 89,
+		90, 92, 93, 94, 97, 98, 99,
+	}
+
+	goods2 := Goods{
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+		11, 12, 15, 16, 17, 18, 19,
+		21, 22, 25, 26, 27, 28, 29,
+		31, 32, 35, 36, 37, 38, 39,
+		41, 42, 45, 46, 47, 48, 49,
+		51, 52, 55, 56, 57, 58, 59,
+		61, 62, 65, 66, 67, 68, 69,
+		71, 72, 75, 76, 77, 78, 79,
+		81, 82, 85, 86, 87, 88, 89,
+		91, 92, 95, 96, 97, 98, 99,
+	}
+
+	var _ = goods.union(goods2)
+}
+
+func TestGenerateDouble(t *testing.T) {
+	gs := GoodsSet{{1}, {2}, {3}}
+
+	gs2 := gs.generate(2)
+
+	if gs2.notEqual(GoodsSet{{1, 2}, {1, 3}, {2, 3}}) {
+		t.Error(gs2)
+	}
+}
+
+func TestGenerateTriple(t *testing.T) {
+	gs := GoodsSet{{1, 2}, {1, 3}, {2, 3}}
+
+	gs2 := gs.generate(3)
+
+	if gs2.notEqual(GoodsSet{{1, 2, 3}}) {
+		t.Error(gs2)
+	}
+}
+
+func TestGenerateFours(t *testing.T) {
+	gs := GoodsSet{{1, 2, 3}, {1, 2, 4}, {1, 3, 4}, {1, 3, 5}, {2, 3, 4}}
+
+	gs2 := gs.generate(4)
+
+	if gs2.notEqual(GoodsSet{{1, 2, 3, 4}, {1, 3, 4, 5}}) {
+		t.Error(gs2)
+	}
+}
+
+func TestInitialize(t *testing.T) {
+	g := initialize(5)
+
+	if g.notEqual(GoodsSet{{0}, {1}, {2}, {3}, {4}}) {
+		t.Error(g)
+	}
+}
+
+func TestInitializeEmpty(t *testing.T) {
+	g := initialize(0)
+
+	if len(g) != 0 {
+		t.Error(g)
+	}
+}
+
+
+func TestInitializeWithNegativeSize(t *testing.T) {
+	g := initialize(-10)
+
+	if len(g) != 0 {
+		t.Error(g)
+	}
 }

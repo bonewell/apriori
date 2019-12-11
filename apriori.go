@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type Transaction []bool  // ordered by index of the product
+type Transaction []bool // ordered by index of the product
 type Goods []int
 type GoodsSet []Goods
 type frequencies []int
@@ -48,12 +48,66 @@ func (t Transaction) contains(goods Goods) bool {
 	return true
 }
 
+func (g Goods) equal(other Goods) bool {
+	if len(g) != len(other) {
+		return false
+	}
+	for i, v := range g {
+		if v != other[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (g Goods) union(o Goods) Goods {
+	goods := Goods{}
+	i, j := 0, 0
+	for i < len(g) && j < len(o) {
+		if g[i] < o[j] {
+			goods = append(goods, g[i])
+			i++
+		} else if g[i] > o[j] {
+			goods = append(goods, o[j])
+			j++
+		} else {
+			goods = append(goods, g[i])
+			i++
+			j++
+		}
+	}
+	var tail Goods
+	if i < j {
+		tail = g[i:]
+	} else {
+		tail = o[j:]
+	}
+	return append(goods, tail...)
+}
+
+func (gs GoodsSet) generate(k int) GoodsSet {
+	gen := GoodsSet{}
+	for i := 0; i < len(gs); i++ {
+		for j := i; j < len(gs); j++ {
+			gsi := gs[i][:k-2]
+			gsj := gs[j][:k-2]
+			if gsi.equal(gsj) {
+				goods := gs[i].union(gs[j])
+				if len(goods) == k {
+					gen = append(gen, goods)
+				}
+			}
+		}
+	}
+	return gen
+}
+
 func (gs GoodsSet) count(ts []Transaction) frequencies {
 	fs := make(frequencies, len(gs))
 	for i, goods := range gs {
 		for _, t := range ts {
 			if t.contains(goods) {
-				fs[i] += 1
+				fs[i]++
 			}
 		}
 	}
@@ -61,7 +115,9 @@ func (gs GoodsSet) count(ts []Transaction) frequencies {
 }
 
 func (f frequencies) filter(gs GoodsSet, threshold int) GoodsSet {
-	if len(f) != len(gs) { panic("Wrong length of data") }
+	if len(f) != len(gs) {
+		panic("Wrong length of data")
+	}
 	filtered := make(GoodsSet, 0)
 	for i, v := range f {
 		if v >= threshold {
@@ -71,15 +127,28 @@ func (f frequencies) filter(gs GoodsSet, threshold int) GoodsSet {
 	return filtered
 }
 
+func initialize(count int) GoodsSet {
+	if count < 0 {
+		return GoodsSet{}
+	}
+	gs := make(GoodsSet, count)
+	for i := 0; i < count; i++ {
+		gs[i] = Goods{i}
+	}
+	return gs
+}
+
 func Apriori(transactions []Transaction, threshold int) GoodsSet {
 	if len(transactions) > 0 {
-		fmt.Println(len(transactions[0]))
-		gs := make(GoodsSet, len(transactions[0]))
-		for i := range transactions[0] {
-			gs[i] = Goods{i}
+		res := GoodsSet{}
+		gs := initialize(len(transactions[0]))
+		for k := 2; len(gs) > 0; k++ {
+			fs := gs.count(transactions)
+			gs = fs.filter(gs, threshold)
+			res = append(res, gs...)
+			gs = gs.generate(k)
 		}
-		fs := gs.count(transactions)
-		return fs.filter(gs, threshold)
+		return res
 	}
 	return GoodsSet{}
 }
