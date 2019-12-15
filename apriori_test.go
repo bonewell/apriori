@@ -229,7 +229,7 @@ func TestPrune(t *testing.T) {
 		{false, false, false, false},
 	}
 
-	pruned := gs.prune(trans, 1)
+	pruned := gs.prune(trans, 0.3)
 
 	if pruned.notEqual(GoodsSet{{0}, {1}, {3}}) {
 		t.Error(pruned)

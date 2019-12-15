@@ -108,7 +108,7 @@ func (gs GoodsSet) generate(k int) GoodsSet {
 	return gen
 }
 
-func (gs GoodsSet) prune(transactions []Transaction, threshold int) GoodsSet {
+func (gs GoodsSet) prune(transactions []Transaction, threshold float64) GoodsSet {
 	res := GoodsSet{}
 	fs := make([]int, len(gs))
 	for i, goods := range gs {
@@ -117,14 +117,14 @@ func (gs GoodsSet) prune(transactions []Transaction, threshold int) GoodsSet {
 				fs[i]++
 			}
 		}
-		if fs[i] >= threshold {
+		if float64(fs[i]) / float64(len(transactions)) >= threshold {
 			res = append(res, gs[i])
 		}
 	}
 	return res
 }
 
-func Apriori(transactions []Transaction, threshold int) GoodsSet {
+func Apriori(transactions []Transaction, threshold float64) GoodsSet {
 	if len(transactions) > 0 {
 		count := len(transactions[0])
 		res := GoodsSet{}
@@ -140,7 +140,7 @@ func Apriori(transactions []Transaction, threshold int) GoodsSet {
 }
 
 func main() {
-	threshold := flag.Int("t", 20, "threshold to get products")
+	threshold := flag.Float64("t", 0.5, "threshold to get products")
 	flag.Parse()
 	filename := flag.Arg(0)
 	if filename == "" {
