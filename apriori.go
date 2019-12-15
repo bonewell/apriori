@@ -39,8 +39,9 @@ func load(filename string) []Transaction {
 }
 
 func (t Transaction) contains(goods Goods) bool {
+	size := len(t)
 	for _, index := range goods {
-		if len(t) <= int(index) || !t[index] {
+		if size <= index || !t[index] {
 			return false
 		}
 	}
@@ -60,9 +61,10 @@ func (g Goods) equal(o Goods) bool {
 }
 
 func (g Goods) union(o Goods) Goods {
-	goods := Goods{}
+	sizeg, sizeo := len(g), len(o)
+	goods := make(Goods, 0, sizeg + sizeo)
 	i, j := 0, 0
-	for i < len(g) && j < len(o) {
+	for i < sizeg && j < sizeo {
 		if g[i] < o[j] {
 			goods = append(goods, g[i])
 			i++
@@ -92,9 +94,10 @@ func (gs GoodsSet) init() GoodsSet {
 }
 
 func (gs GoodsSet) generate(k int) GoodsSet {
-	gen := GoodsSet{}
-	for i := 0; i < len(gs); i++ {
-		for j := i; j < len(gs); j++ {
+	size := len(gs)
+	gen := make(GoodsSet, 0, 2 * size)
+	for i := 0; i < size; i++ {
+		for j := i; j < size; j++ {
 			gsi := gs[i][:k-2]
 			gsj := gs[j][:k-2]
 			if gsi.equal(gsj) {
