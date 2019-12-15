@@ -10,7 +10,6 @@ import (
 type Transaction []bool // ordered by index of the product
 type Goods []int
 type GoodsSet []Goods
-type frequencies []int
 
 func Parse(line string) Transaction {
 	t := make(Transaction, len(line))
@@ -48,12 +47,12 @@ func (t Transaction) contains(goods Goods) bool {
 	return true
 }
 
-func (g Goods) equal(other Goods) bool {
-	if len(g) != len(other) {
+func (g Goods) equal(o Goods) bool {
+	if len(g) != len(o) {
 		return false
 	}
 	for i, v := range g {
-		if v != other[i] {
+		if v != o[i] {
 			return false
 		}
 	}
@@ -85,6 +84,13 @@ func (g Goods) union(o Goods) Goods {
 	return append(goods, tail...)
 }
 
+func (gs GoodsSet) init() GoodsSet {
+	for i := 0; i < len(gs); i++ {
+		gs[i] = Goods{i}
+	}
+	return gs
+}
+
 func (gs GoodsSet) generate(k int) GoodsSet {
 	gen := GoodsSet{}
 	for i := 0; i < len(gs); i++ {
@@ -102,51 +108,31 @@ func (gs GoodsSet) generate(k int) GoodsSet {
 	return gen
 }
 
-func (gs GoodsSet) count(ts []Transaction) frequencies {
-	fs := make(frequencies, len(gs))
+func (gs GoodsSet) prune(transactions []Transaction, threshold int) GoodsSet {
+	res := GoodsSet{}
+	fs := make([]int, len(gs))
 	for i, goods := range gs {
-		for _, t := range ts {
+		for _, t := range transactions {
 			if t.contains(goods) {
 				fs[i]++
 			}
 		}
-	}
-	return fs
-}
-
-func (f frequencies) filter(gs GoodsSet, threshold int) GoodsSet {
-	if len(f) != len(gs) {
-		panic("Wrong length of data")
-	}
-	filtered := make(GoodsSet, 0)
-	for i, v := range f {
-		if v >= threshold {
-			filtered = append(filtered, gs[i])
+		if fs[i] >= threshold {
+			res = append(res, gs[i])
 		}
 	}
-	return filtered
-}
-
-func initialize(count int) GoodsSet {
-	if count < 0 {
-		return GoodsSet{}
-	}
-	gs := make(GoodsSet, count)
-	for i := 0; i < count; i++ {
-		gs[i] = Goods{i}
-	}
-	return gs
+	return res
 }
 
 func Apriori(transactions []Transaction, threshold int) GoodsSet {
 	if len(transactions) > 0 {
+		count := len(transactions[0])
 		res := GoodsSet{}
-		gs := initialize(len(transactions[0]))
+		gs := make(GoodsSet, count).init().prune(transactions, threshold)
+		res = append(res, gs...)
 		for k := 2; len(gs) > 0; k++ {
-			fs := gs.count(transactions)
-			gs = fs.filter(gs, threshold)
+			gs = gs.generate(k).prune(transactions, threshold)
 			res = append(res, gs...)
-			gs = gs.generate(k)
 		}
 		return res
 	}

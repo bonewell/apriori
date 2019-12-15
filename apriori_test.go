@@ -2,22 +2,6 @@ package main
 
 import "testing"
 
-func (f frequencies) equal(other frequencies) bool {
-	if len(f) != len(other) {
-		return false
-	}
-	for i, v := range f {
-		if v != other[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func (f frequencies) notEqual(other frequencies) bool {
-	return !f.equal(other)
-}
-
 func (t Transaction) equal(other Transaction) bool {
 	if len(t) != len(other) {
 		return false
@@ -74,49 +58,6 @@ func TestParseEmptyTransaction(t *testing.T) {
 	}
 }
 
-func TestCount(t *testing.T) {
-	goods := GoodsSet{Goods{0}, Goods{1}, Goods{2}, Goods{3}}
-	trans := []Transaction{
-		{true, true, false, false},
-		{true, false, true, false},
-		{false, false, false, false},
-	}
-
-	freqs := goods.count(trans)
-
-	if freqs.notEqual(frequencies{2, 1, 1, 0}) {
-		t.Error(freqs)
-	}
-}
-
-func BenchmarkCount(b *testing.B) {
-	goods := GoodsSet{
-		{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},
-		{10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
-		{20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29},
-		{30}, {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38}, {39},
-		{40}, {41}, {42}, {43}, {44}, {45}, {46}, {47}, {48}, {49},
-		{50}, {51}, {52}, {53}, {54}, {55}, {56}, {57}, {58}, {59},
-		{60}, {61}, {62}, {63}, {64}, {65}, {66}, {67}, {68}, {69},
-		{70}, {71}, {72}, {73}, {74}, {75}, {76}, {77}, {78}, {79},
-		{80}, {81}, {82}, {83}, {84}, {85}, {86}, {87}, {88}, {89},
-		{90}, {91}, {92}, {93}, {94}, {95}, {96}, {97}, {98}, {99},
-	}
-	trans := []Transaction{{
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-	}}
-	var _ = goods.count(trans)
-}
-
 func TestContains(t *testing.T) {
 	tran := Transaction{true, false, true}
 	if !tran.contains(Goods{0, 2}) {
@@ -153,68 +94,6 @@ func BenchmarkContains(b *testing.B) {
 	}
 	goods := Goods{1, 2, 5, 7, 11, 24, 35, 41, 55, 62, 73, 87, 99}
 	var _ = tran.contains(goods)
-}
-
-func TestFilter(t *testing.T) {
-	fs := frequencies{4, 4, 3, 2, 5}
-
-	gs := fs.filter(GoodsSet{{0}, {1}, {2}, {3}, {4}}, 4)
-
-	if gs.notEqual(GoodsSet{{0}, {1}, {4}}) {
-		t.Error(gs)
-	}
-}
-
-func TestFilterEmptyFrequencies(t *testing.T) {
-	fs := frequencies{}
-
-	gs := fs.filter(GoodsSet{}, 3)
-
-	if len(gs) != 0 {
-		t.Error(gs)
-	}
-}
-
-func TestFilterIncorrectSet(t *testing.T) {
-	fs := frequencies{4, 4, 3, 2}
-
-	defer func() {
-		if err := recover(); err == nil {
-			t.Fail()
-		}
-	}()
-
-	var _ = fs.filter(GoodsSet{{1}}, 4)
-}
-
-func BenchmarkFilter(b *testing.B) {
-	fs := frequencies{
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-		4, 4, 3, 2, 5, 4, 4, 3, 2, 5,
-	}
-
-	goods := GoodsSet{
-		{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},
-		{10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
-		{20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29},
-		{30}, {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38}, {39},
-		{40}, {41}, {42}, {43}, {44}, {45}, {46}, {47}, {48}, {49},
-		{50}, {51}, {52}, {53}, {54}, {55}, {56}, {57}, {58}, {59},
-		{60}, {61}, {62}, {63}, {64}, {65}, {66}, {67}, {68}, {69},
-		{70}, {71}, {72}, {73}, {74}, {75}, {76}, {77}, {78}, {79},
-		{80}, {81}, {82}, {83}, {84}, {85}, {86}, {87}, {88}, {89},
-		{90}, {91}, {92}, {93}, {94}, {95}, {96}, {97}, {98}, {99},
-	}
-
-	var _ = fs.filter(goods, 4)
 }
 
 func TestUnion(t *testing.T) {
@@ -309,8 +188,25 @@ func TestGenerateFours(t *testing.T) {
 	}
 }
 
+func BenchmarkGenerate(b *testing.B) {
+	gs := GoodsSet{
+		{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},
+		{10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
+		{20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29},
+		{30}, {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38}, {39},
+		{40}, {41}, {42}, {43}, {44}, {45}, {46}, {47}, {48}, {49},
+		{50}, {51}, {52}, {53}, {54}, {55}, {56}, {57}, {58}, {59},
+		{60}, {61}, {62}, {63}, {64}, {65}, {66}, {67}, {68}, {69},
+		{70}, {71}, {72}, {73}, {74}, {75}, {76}, {77}, {78}, {79},
+		{80}, {81}, {82}, {83}, {84}, {85}, {86}, {87}, {88}, {89},
+		{90}, {91}, {92}, {93}, {94}, {95}, {96}, {97}, {98}, {99},
+	}
+
+	var _ = gs.generate(2)
+}
+
 func TestInitialize(t *testing.T) {
-	g := initialize(5)
+	g := make(GoodsSet, 5).init()
 
 	if g.notEqual(GoodsSet{{0}, {1}, {2}, {3}, {4}}) {
 		t.Error(g)
@@ -318,18 +214,52 @@ func TestInitialize(t *testing.T) {
 }
 
 func TestInitializeEmpty(t *testing.T) {
-	g := initialize(0)
+	g := make(GoodsSet, 0).init()
 
 	if len(g) != 0 {
 		t.Error(g)
 	}
 }
 
-
-func TestInitializeWithNegativeSize(t *testing.T) {
-	g := initialize(-10)
-
-	if len(g) != 0 {
-		t.Error(g)
+func TestPrune(t *testing.T) {
+	gs := GoodsSet{Goods{0}, Goods{1}, Goods{2}, Goods{3}}
+	trans := []Transaction{
+		{true, true, false, false},
+		{true, false, false, true},
+		{false, false, false, false},
 	}
+
+	pruned := gs.prune(trans, 1)
+
+	if pruned.notEqual(GoodsSet{{0}, {1}, {3}}) {
+		t.Error(pruned)
+	}
+}
+
+func BenchmarkPrune(b *testing.B) {
+	gs := GoodsSet{
+		{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},
+		{10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
+		{20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29},
+		{30}, {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38}, {39},
+		{40}, {41}, {42}, {43}, {44}, {45}, {46}, {47}, {48}, {49},
+		{50}, {51}, {52}, {53}, {54}, {55}, {56}, {57}, {58}, {59},
+		{60}, {61}, {62}, {63}, {64}, {65}, {66}, {67}, {68}, {69},
+		{70}, {71}, {72}, {73}, {74}, {75}, {76}, {77}, {78}, {79},
+		{80}, {81}, {82}, {83}, {84}, {85}, {86}, {87}, {88}, {89},
+		{90}, {91}, {92}, {93}, {94}, {95}, {96}, {97}, {98}, {99},
+	}
+	trans := []Transaction{{
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+		true, false, true, false, false, true, true, false, true, true,
+	}}
+	var _ = gs.prune(trans, 7)
 }
