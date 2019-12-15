@@ -111,17 +111,30 @@ func (gs GoodsSet) generate(k int) GoodsSet {
 	return gen
 }
 
-func (gs GoodsSet) prune(transactions []Transaction, threshold float64) GoodsSet {
-	res := GoodsSet{}
-	fs := make([]int, len(gs))
-	for i, goods := range gs {
-		for _, t := range transactions {
-			if t.contains(goods) {
-				fs[i]++
-			}
+func (g Goods) count(transactions []Transaction, frequency *int, c chan bool) {
+	for _, t := range transactions {
+		if t.contains(g) {
+			*frequency++
 		}
-		if float64(fs[i]) / float64(len(transactions)) >= threshold {
-			res = append(res, gs[i])
+	}
+	c <- true
+}
+
+func (gs GoodsSet) prune(transactions []Transaction, threshold float64) GoodsSet {
+	size := len(gs)
+	count := float64(len(transactions))
+	res := make(GoodsSet, 0, size)
+	c := make(chan bool)
+	fs := make([]int, size)
+	for i, goods := range gs {
+		go goods.count(transactions, &fs[i], c)
+	}
+	for _ = range gs {
+		<- c
+	}
+	for i, goods := range gs {
+		if float64(fs[i])/count >= threshold {
+			res = append(res, goods)
 		}
 	}
 	return res
@@ -130,7 +143,7 @@ func (gs GoodsSet) prune(transactions []Transaction, threshold float64) GoodsSet
 func Apriori(transactions []Transaction, threshold float64) GoodsSet {
 	if len(transactions) > 0 {
 		count := len(transactions[0])
-		res := GoodsSet{}
+		res := make(GoodsSet, 0, 2 * count)
 		gs := make(GoodsSet, count).init().prune(transactions, threshold)
 		res = append(res, gs...)
 		for k := 2; len(gs) > 0; k++ {

@@ -189,18 +189,7 @@ func TestGenerateFours(t *testing.T) {
 }
 
 func BenchmarkGenerate(b *testing.B) {
-	gs := GoodsSet{
-		{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},
-		{10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
-		{20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29},
-		{30}, {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38}, {39},
-		{40}, {41}, {42}, {43}, {44}, {45}, {46}, {47}, {48}, {49},
-		{50}, {51}, {52}, {53}, {54}, {55}, {56}, {57}, {58}, {59},
-		{60}, {61}, {62}, {63}, {64}, {65}, {66}, {67}, {68}, {69},
-		{70}, {71}, {72}, {73}, {74}, {75}, {76}, {77}, {78}, {79},
-		{80}, {81}, {82}, {83}, {84}, {85}, {86}, {87}, {88}, {89},
-		{90}, {91}, {92}, {93}, {94}, {95}, {96}, {97}, {98}, {99},
-	}
+	gs := GoodsSet{{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}}
 
 	var _ = gs.generate(2)
 }
@@ -237,29 +226,94 @@ func TestPrune(t *testing.T) {
 }
 
 func BenchmarkPrune(b *testing.B) {
-	gs := GoodsSet{
-		{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},
-		{10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
-		{20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29},
-		{30}, {31}, {32}, {33}, {34}, {35}, {36}, {37}, {38}, {39},
-		{40}, {41}, {42}, {43}, {44}, {45}, {46}, {47}, {48}, {49},
-		{50}, {51}, {52}, {53}, {54}, {55}, {56}, {57}, {58}, {59},
-		{60}, {61}, {62}, {63}, {64}, {65}, {66}, {67}, {68}, {69},
-		{70}, {71}, {72}, {73}, {74}, {75}, {76}, {77}, {78}, {79},
-		{80}, {81}, {82}, {83}, {84}, {85}, {86}, {87}, {88}, {89},
-		{90}, {91}, {92}, {93}, {94}, {95}, {96}, {97}, {98}, {99},
+	gs := GoodsSet{{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}}
+	trans := []Transaction{
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
 	}
-	trans := []Transaction{{
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-		true, false, true, false, false, true, true, false, true, true,
-	}}
 	var _ = gs.prune(trans, 7)
+}
+
+func TestApriori(t *testing.T) {
+	trans := []Transaction{
+		{true, false, false, false, true},
+		{true, false, false, true, false},
+		{true, false, true, false, false},
+		{false, false, true, true, false},
+		{false, false, true, false, true},
+	}
+
+	gs := Apriori(trans, 0.4)
+	if gs.notEqual(GoodsSet{{0}, {2}, {3}, {4}}) {
+		t.Error(gs)
+	}
+}
+
+func BenchmarkApriori(b *testing.B) {
+	trans := []Transaction{
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+	}
+
+	var _ = Apriori(trans, 0.4)
+}
+
+func TestCount(t *testing.T) {
+	trans := []Transaction{
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+	}
+
+	freq := 0
+	c := make(chan bool)
+	go Goods{0, 2}.count(trans, &freq, c)
+	<-c
+
+	if freq != 10 {
+		t.Error(freq)
+	}
+}
+
+func BenchmarkCount(b *testing.B) {
+	trans := []Transaction{
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+		{true, false, true, false, false, true, true, false, true, true},
+	}
+
+	freq := 0
+	c := make(chan bool)
+	go Goods{0, 2}.count(trans, &freq, c)
+	<-c
 }
